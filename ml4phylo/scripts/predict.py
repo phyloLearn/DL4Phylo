@@ -36,11 +36,11 @@ def main():
     parser = argparse.ArgumentParser(
         description=(
             "Predict phylogenetic trees from MSAs "
-            "using the Phyloformer neural network"
+            "using the ML4Phylo neural network"
         )
     )
     parser.add_argument(
-        "alidir",
+        "--alidir",
         type=str,
         help="path to input directory containing the\
     .fasta alignments",
@@ -90,13 +90,8 @@ def main():
     elif args.gpu and torch.backends.mps.is_available():
         device = "mps"
 
-
     model = None
-    if args.model.lower() == "seqgen":
-        model = seqgen(device=device)
-    elif args.model.lower() == "evosimz":
-        model = evosimz(device=device)
-    elif args.model is not None:
+    if args.model is not None:
         if not os.path.isfile(args.model):
             raise ValueError(f"The specified model file: {args.model} does not exist")
         model = load_model(args.model, device=device)
@@ -105,7 +100,7 @@ def main():
 
     model.to(device)
 
-    print("Phyloformer predict:\n")
+    print("ML4Phylo predict:\n")
     print(f"Predicting trees for alignments in {args.alidir}")
     print(f"Using the {args.model} model on {device}")
     print(f"Saving predicted trees in {out_dir}")

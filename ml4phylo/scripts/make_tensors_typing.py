@@ -7,8 +7,6 @@ from tqdm import tqdm
 from data import load_tree
 from data_typing import load_typing
 
-alignment_example = "small_alignment"
-
 def make_tensors_typing(tree_dir: str, typing_dir: str, out_dir: str):
     trees = [file for file in os.listdir(tree_dir) if file.endswith(".nwk")]
     for tree_file in (pbar := tqdm(trees)):
@@ -25,7 +23,7 @@ def make_tensors_typing(tree_dir: str, typing_dir: str, out_dir: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate a tensor training set from trees and MSAs"
+        description="Generate a tensor training set from trees and typing data"
     )
     parser.add_argument(
         "-t",

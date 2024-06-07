@@ -6,15 +6,13 @@ from tqdm import tqdm
 
 from data import load_alignment, load_tree
 
-alignment_example = "small_alignment"
-
-def make_tensors(tree_dir: str, aln_dir: str, out_dir: str, isExample: bool):
+def make_tensors(tree_dir: str, aln_dir: str, out_dir: str, isNucleotides: bool):
     trees = [file for file in os.listdir(tree_dir) if file.endswith(".nwk")]
     for tree_file in (pbar := tqdm(trees)):
         identifier = tree_file.rstrip(".nwk")
         pbar.set_description(f"Processing {identifier}")
         tree_tensor, _ = load_tree(os.path.join(tree_dir, tree_file))
-        aln_tensor, _ = load_alignment(os.path.join(aln_dir, f"{identifier if not isExample else "small_alignment"}.fasta"), isExample)
+        aln_tensor, _ = load_alignment(os.path.join(aln_dir, f"{identifier}.fasta"), isNucleotides)
 
         torch.save(
             {"X": aln_tensor, "y": tree_tensor},
@@ -49,17 +47,17 @@ def main():
         help="path to output directory (default: current directory)",
     )
     parser.add_argument(
-        "-e",
-        "--example",
+        "-n",
+        "--nucleotides",
         action="store_true",
-        help="boolean that indicates if this run is a test",
+        help="boolean that indicates if it's used nucleotides instead of aminoacids",
     )
     args = parser.parse_args()
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    make_tensors(args.treedir, args.alidir, args.output, args.example)
+    make_tensors(args.treedir, args.alidir, args.output, args.nucleotides)
 
 
 if __name__ == "__main__":

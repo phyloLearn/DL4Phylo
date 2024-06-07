@@ -11,7 +11,7 @@ def sequence_to_typing(seq, gene_dic, total_blocks,  block_size, interval_block_
     typing_seq = []
     
     for char in range(0, len(seq), block_size + interval_block_size):
-        if char + block_size > len(seq) and n_blocks >= total_blocks:
+        if char + block_size > len(seq) or n_blocks >= total_blocks:
             break
         
         current_block = seq[char:char + block_size]

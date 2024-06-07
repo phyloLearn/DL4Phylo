@@ -6,7 +6,6 @@ import skbio
 import torch
 from ete3 import Tree
 from Bio import SeqIO
-from utils import println
 from torch.utils.data import Dataset
 
 NUCLEOTIDES = np.array(list("ATGC")) # used for our alignment example

@@ -25,6 +25,7 @@ class AttentionNet(nn.Module):
         device: str = "cpu",
         n_seqs: int = 20,
         seq_len: int = 200,
+        in_channels: int = 22,
         **kwargs
     ):
         """Initializes internal Module state
@@ -45,6 +46,9 @@ class AttentionNet(nn.Module):
             Number of sequences in input alignments, by default 20
         seq_len : int, optional
             Length of sequences in input alignment, by default 200
+        n_channels : int, optional
+            Number of channels in input tensor, depending on input type [nucleotides: 4, aminoacids: 22, typing data: 32]
+        
 
         Returns
         -------
@@ -70,6 +74,7 @@ class AttentionNet(nn.Module):
         self.h_dim = h_dim
         self.dropout = dropout
         self.device = device
+        self.in_channels = in_channels
 
         self._init_seq2pair(n_seqs, seq_len)
 
@@ -81,7 +86,7 @@ class AttentionNet(nn.Module):
 
         # Position wise fully connected layer from pair wise averaging procedure
         layers_1_1 = [
-            nn.Conv2d(in_channels=32, out_channels=h_dim, kernel_size=1, stride=1),
+            nn.Conv2d(in_channels=in_channels, out_channels=h_dim, kernel_size=1, stride=1),
             nn.ReLU(),
         ]
         self.block_1_1 = nn.Sequential(*layers_1_1)
@@ -150,16 +155,18 @@ class AttentionNet(nn.Module):
         ValueError
             If the tensors aren't the right shape
         """
+        # Check if the input tensor has the right shape
+        if x.shape[1:] != (self.in_channels, self.seq_len, self.n_seqs):
+            raise ValueError(
+                f"Input tensor shape is: {x.shape[1:]}; but ({self.in_channels}, {self.seq_len}, {self.n_seqs}) was expected."
+            )
+
         # 2D convolution that gives us the features in the third dimension
         # (i.e. initial embedding of each amino acid)
         out = self.block_1_1(x) # [4, 64, 200, 20]
 
-        println("Model after first layer:", out.size())
-
         # Pair representation
         out = torch.matmul(self.seq2pair, out.transpose(-1, -2)) # [4, 64, 190, 200]
-
-        println("Pair representation:", out.size())
 
         # From here on the tensor has shape = (batch_size,features,nb_pairs,seq_len), all
         # the transpose/permute allow to apply layernorm and attention over the desired
@@ -214,15 +221,11 @@ class AttentionNet(nn.Module):
     def _init_seq2pair(self, n_seqs: int, seq_len: int):
         """Initialize Seq2Pair matrix"""
 
-        print("------------Seq2Pair------------")
-
         self.n_seqs = n_seqs
         self.seq_len = seq_len
 
         # Calculate all possible combinations of 2 sequences
         self.n_pairs = int(binom(n_seqs, 2))
-
-        println("Number os pairs: ", self.n_pairs)
 
         # Create a tensor with zeros of dimensions (n_pairs, n_seqs)
         seq2pair = torch.zeros(self.n_pairs, self.n_seqs)
@@ -247,10 +250,6 @@ class AttentionNet(nn.Module):
                 seq2pair[k, j] = 1
                 k = k + 1
 
-        println("Seq2Pair tensor:", seq2pair)
-
-        print("------------Seq2Pair Done------------")
-
         self.seq2pair = seq2pair.to(self.device)
 
     def _get_architecture(self) -> Dict[str, Any]:
@@ -268,6 +267,7 @@ class AttentionNet(nn.Module):
             "dropout": self.dropout,
             "seq_len": self.seq_len,
             "n_seqs": self.n_seqs,
+            "in_channels": self.in_channels,
         }
 
     def save(self, path: str) -> None:
@@ -308,6 +308,11 @@ class AttentionNet(nn.Module):
         ValueError
             If the tensors aren't the right shape
         """
+                # Check if the input tensor has the right shape
+        if X.shape != (self.in_channels, self.seq_len, self.n_seqs):
+            raise ValueError(
+                f"Input tensor shape is: {X.shape}; but ({self.in_channels}, {self.seq_len}, {self.n_seqs}) was expected."
+            )
 
         # reshape from [22, n_seq, seq_len] to [1, 22, n_seq, seq_len]
         tensor = X[None, :, :]
@@ -330,8 +335,6 @@ class AttentionNet(nn.Module):
                     pred = float("%.6f" % (pred))
                     nn_dist[(i, j)], nn_dist[(j, i)] = pred, pred
                     cursor += 1
-
-        println("Distance Matrix", nn_dist)
 
         return skbio.DistanceMatrix(
             [[nn_dist[(i, j)] for j in range(self.n_seqs)] for i in range(self.n_seqs)],
@@ -367,6 +370,12 @@ class AttentionNet(nn.Module):
         ValueError
             If the tensors aren't the right shape
         """
+        # Check if the input tensor has the right shape
+        if X.shape != (self.in_channels, self.seq_len, self.n_seqs):
+            raise ValueError(
+                f"Input tensor shape is: {X.shape}; but ({self.in_channels}, {self.seq_len}, {self.n_seqs}) was expected."
+            )
+
         phyloformer_dm = dm if dm is not None else self.infer_dm(X, ids)
         nn_newick_str = skbio.tree.nj(phyloformer_dm, result_constructor=str)
 

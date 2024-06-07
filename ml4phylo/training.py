@@ -203,7 +203,7 @@ def training_loop(
                 model.eval()
                 inputs = x_val.float()
                 with (autocast() if device == "cuda" and amp else nullcontext()):
-                    outputs, _ = model(inputs)
+                    outputs = model(inputs)
                     y_val = torch.squeeze(y_val.type_as(outputs))
                     val_loss = criterion(outputs, y_val).item()
                     val_MAE = MAE(outputs, y_val)

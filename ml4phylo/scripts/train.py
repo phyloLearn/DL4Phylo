@@ -82,6 +82,30 @@ def main():
         and the metrics will be saved (default: current directory)",
     )
     parser.add_argument(
+        "-it",
+        "--input_type",
+        required=False,
+        default="aminoacids",
+        type=str,
+        help="Type of input data. Possible values: [nucleotides, aminoacids, typing]",
+    )
+    parser.add_argument(
+        "-ns",
+        "--n_seqs",
+        required=False,
+        default=20,
+        type=int,
+        help="Number of sequences in input alignments.",
+    )
+    parser.add_argument(
+        "-sl",
+        "--seq_len",
+        required=False,
+        default=200,
+        type=int,
+        help="Length of sequences in input alignments.",
+    )
+    parser.add_argument(
         "-l",
         "--load",
         required=False,
@@ -149,7 +173,17 @@ def main():
             args.load, device=device
         )
     else:
-        model = AttentionNet(**config)
+        types = {
+            "nucleotides": 4,
+            "aminoacids": 22,
+            "typing": 32
+        }
+
+        if args.input_type not in types:
+            raise ValueError("You must specify one of the following input types: [nucleotides, aminoacids, typing]")
+        
+        model = AttentionNet(in_channels=types[args.input_type], n_seqs=args.n_seqs, seq_len=args.seq_len, **config)
+
         model.to(device)
         optimizer, scheduler, criterion = init_training(model, **config)
 

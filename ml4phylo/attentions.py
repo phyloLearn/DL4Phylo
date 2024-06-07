@@ -2,9 +2,7 @@
 in the Phyloformer network
 """
 
-import torch
 import torch.nn as nn
-import math
 from torch.nn import functional as F
 
 class KernelAxialMultiAttention(nn.Module):
