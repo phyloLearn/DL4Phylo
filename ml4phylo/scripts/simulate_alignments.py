@@ -5,6 +5,10 @@ import subprocess
 from tqdm import tqdm
 
 SEQGEN_MODELS = [
+    "HKY",
+    "F84",
+    "GTR",
+    "REV",
     "JTT",
     "WAG",
     "PAM",

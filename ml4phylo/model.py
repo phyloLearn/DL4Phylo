@@ -376,13 +376,13 @@ class AttentionNet(nn.Module):
                 f"Input tensor shape is: {X.shape}; but ({self.in_channels}, {self.seq_len}, {self.n_seqs}) was expected."
             )
 
-        phyloformer_dm = dm if dm is not None else self.infer_dm(X, ids)
-        nn_newick_str = skbio.tree.nj(phyloformer_dm, result_constructor=str)
+        ml4phylo_dm = dm if dm is not None else self.infer_dm(X, ids)
+        nn_newick_str = skbio.tree.nj(ml4phylo_dm, result_constructor=str)
 
         return Tree(nn_newick_str)
 
 def _init_model(model: AttentionNet, state_dict: dict, single_gpu: bool):
-    """Loads  a state_dict into a Phyloformer model
+    """Loads  a state_dict into a ML4Phylo model
 
     Parameters
     ----------
@@ -405,7 +405,7 @@ def _init_model(model: AttentionNet, state_dict: dict, single_gpu: bool):
 
 
 def load_model(path: str, device: str = "cpu", single_gpu: bool = True) -> AttentionNet:
-    """Load a Phyloformer istance froms disk
+    """Load a ML4Phylo istance froms disk
 
     Parameters
     ----------

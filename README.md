@@ -135,13 +135,31 @@ predict_typing
 ```
 Example: python .\ml4phylo\scripts\predict_typing.py ....args......
 
-<!-- ## Evaluation of the obtained phylogenetic trees
+## Prediction of true trees
+
+### With sequences
+```txt
+predict_true_trees
+    --indir <input directory containing the .fasta alignments>
+    --outdir <output directory were the .nwk tree files will be saved>
+```
+Example: python .\ml4phylo\scripts\predict_true_trees.pt ....args......
+
+### With typing data
+```txt
+predict_true_trees_typing
+    --indir <input directory containing the .txt typing data>
+    --outdir <output directory were the .nwk tree files will be saved>
+```
+Example: python .\ml4phylo\scripts\predict_true_trees_typing.py ....args.......
+
+## Evaluation of the obtained phylogenetic trees
 ```txt
 evaluate
     --true <directory containing true trees in .nwk format>
     --predictions <directory containing predicted trees in .nwk format>
 ```
-Example: python .\ml4phylo\scripts\evaluate.py ....args...... -->
+Example: python .\ml4phylo\scripts\evaluate.py ....args......
 
 # Important Note
 
@@ -159,13 +177,20 @@ In \testdata\dataset\training there are some folders you can use to store any va
         - sequences &rarr; Store any models gotten from training the model with sequences.
         - typing_data &rarr; Store any models gotten from training the model with typing data.
 
+## Prediction folders
+In \testdata\dataset\predictions there are some folders you can use to store any values gotten from any operations necessary to predict the phylogenetic trees:
+
+- \testdata\dataset\predictions
+    - alignments &rarr; Store any .fasta files of sequence alignments;
+    - typing_data &rarr; Store any .txt files of typing data;
+    - trees:
+      - predicted:
+        - sequences &rarr; Store any .nwk files of predicted trees from sequence alignments;
+        - typing_data &rarr; Store any .nwk files of predicted trees from typing data;
+      - true:
+        - sequences &rarr; Store any .nwk files of true trees from sequence alignments;
+        - typing_data &rarr; Store any .nwk files of true trees from typing data;
+
 Feel free to use these existing folders, but you can always have your own!
 
 **Whatever folder you might be using to store files, they are not emptied if you try to generate new ones! Remember to empty these folders to avoid any possible problems when you want to store any new files!**
-
-## Current non-available scripts
-
-### "evaluate.py"
-The evaluation script "evaluate.py" is also momentarily unavailable as it requires a another script not yet worked on.
-
-

@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 from data import load_alignment, write_dm
 from model import AttentionNet, load_model
-from pretrained import evosimz, seqgen
 
 
 def is_fasta(path: str) -> bool:
@@ -40,7 +39,7 @@ def main():
         )
     )
     parser.add_argument(
-        "--alidir",
+        "alidir",
         type=str,
         help="path to input directory containing the\
     .fasta alignments",

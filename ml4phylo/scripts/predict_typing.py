@@ -40,7 +40,7 @@ def main():
         )
     )
     parser.add_argument(
-        "--typingdir",
+        "typingdir",
         type=str,
         help="path to input directory containing the\
     .txt files with typing data",
