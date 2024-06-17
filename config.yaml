@@ -1,0 +1,60 @@
+entity: optimus-bits
+project: phylolearn-dl4phylo
+name: sequence/original-sequence-aa/default/1
+
+
+method: random
+
+
+metric:
+    name: train/epoch-loss
+    goal: minimize
+
+
+parameters:
+
+    seed:
+        value: 42
+
+    dataset:
+        value: datasets/sequence_data/original-sequence-aa
+    epochs:
+        value: 185
+    batch_size:
+        value: 4
+    train_fraction:
+        value: 0.9
+    
+    optimizer:
+        value: Adam
+    learning_rate:
+        value: 0.00039
+    
+    criterion:
+        value: L2
+    
+    n_blocks:
+        value: 6
+    n_heads:
+        value: 4
+    h_dim:
+        value: 64
+    dropout:
+        value: 0.0
+    
+    checkpoint:
+        value: null
+    
+    amp:
+        value: True
+    clip_gradients:
+        value: True
+    early_stopping:
+        value: True
+    stopping_steps:
+        value: 8
+    
+    train_batch_logs_per_epoch:
+        value: 0.1
+    validation_batch_logs_per_epoch:
+        value: 0.2

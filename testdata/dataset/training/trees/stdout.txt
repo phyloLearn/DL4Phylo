@@ -1,1 +1,0 @@
-20 trees with 20 leaves simulated, topology: uniform, branch length distribution: uniform.
