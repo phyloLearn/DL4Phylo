@@ -13,7 +13,7 @@ from tqdm.auto import tqdm
 def typing_true_trees(input_typings: str, dataset_id: str):
     input_typings = os.path.join('./datasets/typings', input_typings)
     
-    output = os.path.join('./test/typing_true_trees', dataset_id)
+    output = os.path.join('./test/true_trees', dataset_id)
     if not os.path.exists(output):
         os.makedirs(output)
     

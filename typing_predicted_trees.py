@@ -14,7 +14,7 @@ def is_txt(path: str) -> bool:
 def typing_predicted_trees(input_typings: str, dataset_id: str, model: str, device: str, save_distance_matrices: bool):
     input_typings = os.path.join('./datasets/typings', input_typings)
 
-    output = os.path.join('./test/typing_predicted_trees', dataset_id)
+    output = os.path.join('./test/predicted_trees', dataset_id)
     if not os.path.exists(output):
         os.makedirs(output)
 

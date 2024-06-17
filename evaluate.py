@@ -7,8 +7,8 @@ import os
 
 
 def evaluate(true, predicted):
-    true = os.path.join('./test/typing_true_trees', true)
-    predicted = os.path.join('./test/typing_predicted_trees', predicted)
+    true = os.path.join('./test/true_trees', true)
+    predicted = os.path.join('./test/predicted_trees', predicted)
     true_trees=[item for item in os.listdir(true) if item[-3:]=='nwk']
     RFs=[]
     for tree in true_trees:
