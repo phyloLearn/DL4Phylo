@@ -256,3 +256,18 @@ python generate_sequence_data.py -t 10k-20-20-un-un -a 10k-20-20-un-un-seqgen-f8
 # Generate sequence data tensor pairs (X: alignment/sequence, y: tree)
 python generate_sequence_data.py -t 5k-20-20-un-un -a 5k-20-20-un-un-seqgen-f84-200 -o 5k-20-20-un-un-seqgen-f84-200-nu -v nucleotides
 ```
+
+
+
+
+# Train + Validation
+```bash
+python train.py -c config-10k-typ.yaml 50 -d cuda:0 -w online
+python train.py -c config-5k-typ.yaml 50 -d cuda:1 -w online
+
+python train.py -c config-10k-seq-aa.yaml 50 -d cuda:2 -w online
+python train.py -c config-5k-seq-aa.yaml 50 -d cuda:2 -w online
+
+python train.py -c config-10k-seq-nu.yaml 50 -d cuda:3 -w online
+python train.py -c config-5k-seq-nu.yaml 50 -d cuda:3 -w online
+```
