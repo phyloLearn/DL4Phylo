@@ -4,3 +4,4 @@ datasets/
 train/checkpoints/
 wandb/
 sequence_generators/
+test/

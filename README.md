@@ -1,6 +1,6 @@
-## Datasets
+# Datasets
 
-### Demo
+<!-- ### Demo
 
 #### original
 ```bash
@@ -54,9 +54,9 @@ python generate_alignments.py -t original-test -o original-test-sequence -g ./se
 
 # Generate sequence data tensors (X: alignment/sequence, y: tree)
 # No need since we do not use it for training or validation, only for testing.
-```
+``` -->
 
-### Main
+<!-- ### Main
 
 
 
@@ -139,24 +139,120 @@ python generate_sequence_data.py -t 20-20-un-un -a 20-20-un-un-seqgen-f84-200 -o
 
 
 
-![main-dataset](images/main-dataset.png)
+![main-dataset](images/main-dataset.png) -->
 
 
-
+## Trees
 #### 10k-20-20-un-un
 ```bash
 # Generate trees
 for i in {1..500}; do echo "[$i/500]"; python generate_trees.py -o 10k-20-20-un-un -t 20 -l 20 -s uniform -d uniform; done
 ```
 
+#### 5k-20-20-un-un
+```bash
+# Generate trees
+for i in {1..250}; do echo "[$i/250]"; python generate_trees.py -o 5k-20-20-un-un -t 20 -l 20 -s uniform -d uniform; done
+```
+
+
+
+
+## Alignments
+### Amino Acids
+#### 10k-20-20-un-un-seqgen-pam-200
+```bash
+# Generate alignments (amino acids of 200 sequence length)
+python generate_alignments.py -t 10k-20-20-un-un -o 10k-20-20-un-un-seqgen-pam-200 -g ./sequence_generators/seq-gen -m PAM -l 200
+```
+
+#### 5k-20-20-un-un-seqgen-pam-200
+```bash
+# Generate alignments (amino acids of 200 sequence length)
+python generate_alignments.py -t 5k-20-20-un-un -o 5k-20-20-un-un-seqgen-pam-200 -g ./sequence_generators/seq-gen -m PAM -l 200
+```
+
+### Nucleotides
 #### 10k-20-20-un-un-seqgen-f84-700000
 ```bash
 # Generate alignments (nucleotides of 700000 (700x1000) sequence length)
 python generate_alignments.py -t 10k-20-20-un-un -o 10k-20-20-un-un-seqgen-f84-700000 -g ./sequence_generators/seq-gen -m F84 -l 700000
 ```
 
+#### 5k-20-20-un-un-seqgen-f84-700000
+```bash
+# Generate alignments (nucleotides of 700000 (700x1000) sequence length)
+python generate_alignments.py -t 5k-20-20-un-un -o 5k-20-20-un-un-seqgen-f84-700000 -g ./sequence_generators/seq-gen -m F84 -l 700000
+```
+
+#### 10k-20-20-un-un-seqgen-f84-200
+```bash
+# Generate alignments (nucleotides of 200 sequence length)
+python generate_alignments.py -t 10k-20-20-un-un -o 10k-20-20-un-un-seqgen-f84-200 -g ./sequence_generators/seq-gen -m F84 -l 200
+```
+
+#### 5k-20-20-un-un-seqgen-f84-200
+```bash
+# Generate alignments (nucleotides of 200 sequence length)
+python generate_alignments.py -t 5k-20-20-un-un -o 5k-20-20-un-un-seqgen-f84-200 -g ./sequence_generators/seq-gen -m F84 -l 200
+```
+
+
+
+
+## Typings
 #### 10k-20-20-un-un-seqgen-f84-700000-1000-600-100
 ```bash
 # Generate typings (1000 blocks of 600 sequence length)
 python generate_typings.py -a 10k-20-20-un-un-seqgen-f84-700000 -o 10k-20-20-un-un-seqgen-f84-700000-1000-600-100 -b 1000 -e 600 -i 100
+```
+
+#### 5k-20-20-un-un-seqgen-f84-700000-1000-600-100
+```bash
+# Generate typings (1000 blocks of 600 sequence length)
+python generate_typings.py -a 5k-20-20-un-un-seqgen-f84-700000 -o 5k-20-20-un-un-seqgen-f84-700000-1000-600-100 -b 1000 -e 600 -i 100
+```
+
+
+
+
+## Typing data
+#### 10k-20-20-un-un-seqgen-f84-700000-1000-600-100
+```bash
+# Generate typing data tensor pairs (X: typing, y: tree)
+python generate_typing_data.py -t 10k-20-20-un-un -y 10k-20-20-un-un-seqgen-f84-700000-1000-600-100 -o 10k-20-20-un-un-seqgen-f84-700000-1000-600-100
+```
+
+#### 5k-20-20-un-un-seqgen-f84-700000-1000-600-100
+```bash
+# Generate typing data tensor pairs (X: typing, y: tree)
+python generate_typing_data.py -t 5k-20-20-un-un -y 5k-20-20-un-un-seqgen-f84-700000-1000-600-100 -o 5k-20-20-un-un-seqgen-f84-700000-1000-600-100
+```
+
+
+
+
+## Sequence data
+#### 10k-20-20-un-un-seqgen-pam-200-aa
+```bash
+# Generate sequence data tensor pairs (X: alignment/sequence, y: tree)
+python generate_sequence_data.py -t 10k-20-20-un-un -a 10k-20-20-un-un-seqgen-pam-200 -o 10k-20-20-un-un-seqgen-pam-200-aa -v amino_acids
+```
+
+#### 5k-20-20-un-un-seqgen-pam-200-aa
+```bash
+# Generate sequence data tensor pairs (X: alignment/sequence, y: tree)
+python generate_sequence_data.py -t 5k-20-20-un-un -a 5k-20-20-un-un-seqgen-pam-200 -o 5k-20-20-un-un-seqgen-pam-200-aa -v amino_acids
+```
+
+#### 10k-20-20-un-un-seqgen-f84-200-nu
+```bash
+# Generate sequence data tensor pairs (X: alignment/sequence, y: tree)
+python generate_sequence_data.py -t 10k-20-20-un-un -a 10k-20-20-un-un-seqgen-f84-200 -o 10k-20-20-un-un-seqgen-f84-200-nu -v nucleotides
+```
+
+#### 5k-20-20-un-un-seqgen-f84-200-nu
+```bash
+# Generate sequence data tensor pairs (X: alignment/sequence, y: tree)
+python generate_sequence_data.py -t 5k-20-20-un-un -a 5k-20-20-un-un-seqgen-f84-200 -o 5k-20-20-un-un-seqgen-f84-200-nu -v nucleotides
 ```
