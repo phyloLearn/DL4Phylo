@@ -33,14 +33,15 @@ def train(device: str, wandb_mode: str):
         torch.cuda.manual_seed(config.seed)
 
         # load dataset
-        tensor_files = list(os.listdir(config.dataset))
+        dataset = os.path.join('./datasets', config.dataset)
+        tensor_files = list(os.listdir(dataset))
         n_tensors = int(len(tensor_files) * (1 - config.train_fraction))
         sampled_indices = set(random.Random(config.seed).sample(range(len(tensor_files)), n_tensors))
         train_ids, val_ids = [], []
         for i, file in enumerate(tensor_files):
             val_ids.append(file) if i in sampled_indices else train_ids.append(file)
-        train_data = DataLoader(TensorDataset(config.dataset, filter=train_ids), batch_size=config.batch_size)
-        val_data = DataLoader(TensorDataset(config.dataset, filter=val_ids), batch_size=config.batch_size)
+        train_data = DataLoader(TensorDataset(dataset, filter=train_ids), batch_size=config.batch_size)
+        val_data = DataLoader(TensorDataset(dataset, filter=val_ids), batch_size=config.batch_size)
         
         train_batch_log_frequency = int(1 / config.train_batch_logs_per_epoch) if config.train_batch_logs_per_epoch != 0 else float('inf')
         validation_batch_log_frequency = int(1 / config.validation_batch_logs_per_epoch) if config.validation_batch_logs_per_epoch != 0 else float('inf')
