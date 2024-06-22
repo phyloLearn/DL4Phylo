@@ -1,7 +1,8 @@
 **/__pycache__/
-datasets/
-!datasets/trees/
-!datasets/trees/**
+datasets/alignments/
+datasets/sequence_data/
+datasets/typings/
+datasets/typing_data/
 *.ipynb
 train/checkpoints/
 wandb/
