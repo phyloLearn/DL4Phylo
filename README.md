@@ -167,6 +167,7 @@ python train.py -c train/configs/config-10k-seq-nu.yaml 50 -d cuda:3 -w online
 python train.py -c train/configs/config-5k-seq-nu.yaml 50 -d cuda:3 -w online
 
 python train.py -c train/configs/config-10k-typ-7-600.yaml 50 -d mps -w online
+python train.py -c train/configs/config-5k-typ-7-600.yaml 50 -d mps -w online
 ```
 
 
