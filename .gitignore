@@ -2,7 +2,8 @@
 datasets/alignments/
 datasets/sequence_data/
 datasets/typings/
-datasets/typing_data/
+datasets/typing_data/10k-20-20-un-un-seqgen-f84-700000-1000-600-100
+datasets/typing_data/5k-20-20-un-un-seqgen-f84-700000-1000-600-100
 *.ipynb
 train/checkpoints/
 wandb/
