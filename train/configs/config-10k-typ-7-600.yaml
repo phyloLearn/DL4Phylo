@@ -1,13 +1,13 @@
 entity: optimus-bits
 project: dl4phylo
-name: 10k-20-20-un-un-seqgen-f84-4900-7-600-100/bayes/2
+name: 10k-20-20-un-un-seqgen-f84-4900-7-600-100/bayes/3
 
 
 method: bayes
 
 
 metric:
-    name: train/epoch-loss
+    name: validation/epoch-mae
     goal: minimize
 
 
@@ -19,9 +19,9 @@ parameters:
     dataset:
         value: typing_data/10k-20-20-un-un-seqgen-f84-4900-7-600-100
     epochs:
-        values: [40, 80, 120, 160, 180, 200]
+        value: 185
     batch_size:
-        values: [4, 8, 16, 32, 64, 128]
+        values: [4, 8, 16, 32]
     train_fraction:
         values: [0.9, 0.95]
     
@@ -29,8 +29,8 @@ parameters:
         values: [Adam, AdamW, SGD]
     learning_rate:
         distribution: uniform
-        min: 0.0001
-        max: 0.01
+        min: 0.000001
+        max: 0.001
     
     criterion:
         values: [L1, L2]
