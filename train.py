@@ -127,6 +127,13 @@ def train(device: str, wandb_mode: str):
                 progress.set_postfix({'train/batch-loss': f'{batch_loss:.4f}'})
                 if (batch % train_batch_log_frequency) == 0 or (batch + 1) == len(train_data):
                     wandb_run.log({'train/batch-loss': batch_loss, 'train/batch': batch + (len(train_data) * epoch)})
+                
+                # early stop
+                if not math.isfinite(batch_loss):
+                    progress.close()
+                    print(f'ERROR: {batch_loss} train/batch-loss in epoch {epoch} batch {batch}, early stop triggered')
+                    print()
+                    return
 
             epoch_loss = np.mean(epoch_train_losses)
             train_losses.append(epoch_loss)
