@@ -27,6 +27,7 @@ def sequence_predicted_trees(input_alignments: str, dataset_id: str, model: str,
         pbar.set_description(f"Processing {identifier}")
 
         tensor, ids = load_alignment(os.path.join(input_alignments, aln))
+        # tensor, ids = load_alignment(os.path.join(input_alignments, aln), True)
 
         # check if model input settings match alignment
         _, seq_len, n_seqs = tensor.shape
