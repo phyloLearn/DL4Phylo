@@ -1,17 +1,27 @@
 **/__pycache__/
+datasets/trees/10k-20-simbac-4900-0.001-0.001
+datasets/trees/5k-20-simbac-4900-0.001-0.001
 datasets/alignments/10k-20-20-un-un-seqgen-f84-700000
 datasets/alignments/5k-20-20-un-un-seqgen-f84-700000
+# datasets/alignments/10k-20-20-un-un-seqgen-f84-4900
+# datasets/alignments/5k-20-20-un-un-seqgen-f84-4900
 datasets/alignments/10k-20-20-un-un-seqgen-f84-200
 datasets/alignments/5k-20-20-un-un-seqgen-f84-200
 datasets/alignments/10k-20-20-un-un-seqgen-pam-200
 datasets/alignments/5k-20-20-un-un-seqgen-pam-200
+datasets/alignments/10k-20-simbac-4900-0.001-0.001
+datasets/alignments/5k-20-simbac-4900-0.001-0.001
 datasets/alignments/500-*
 datasets/sequence_data/
 datasets/typings/10k-20-20-un-un-seqgen-f84-700000-1000-600-100
 datasets/typings/5k-20-20-un-un-seqgen-f84-700000-1000-600-100
+datasets/typings/10k-20-20-un-un-seqgen-f84-4900-7-600-100
+datasets/typings/5k-20-20-un-un-seqgen-f84-4900-7-600-100
 datasets/typings/500-*
 datasets/typing_data/10k-20-20-un-un-seqgen-f84-700000-1000-600-100
 datasets/typing_data/5k-20-20-un-un-seqgen-f84-700000-1000-600-100
+datasets/typing_data/10k-20-20-un-un-seqgen-f84-4900-7-600-100
+datasets/typing_data/5k-20-20-un-un-seqgen-f84-4900-7-600-100
 *.ipynb
 train/checkpoints/
 wandb/
