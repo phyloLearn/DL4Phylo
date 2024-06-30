@@ -1,6 +1,4 @@
 **/__pycache__/
-# datasets/trees/10k-20-simbac-4900-0.001-0.001
-# datasets/trees/5k-20-simbac-4900-0.001-0.001
 datasets/alignments/10k-20-20-un-un-seqgen-f84-700000
 datasets/alignments/5k-20-20-un-un-seqgen-f84-700000
 datasets/alignments/10k-20-20-un-un-seqgen-f84-4900
@@ -15,10 +13,6 @@ datasets/alignments/10k-20-simbac-4900-0.001-0.001
 datasets/alignments/5k-20-simbac-4900-0.001-0.001
 datasets/alignments/500-*
 datasets/sequence_data/
-datasets/typings
-datasets/typing_data
 train/checkpoints/
 wandb/
-sequence_generators/
-test/
 **/.DS_Store
