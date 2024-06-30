@@ -13,8 +13,13 @@ def evaluate(true, predicted):
     RFs=[]
     for tree in true_trees:
         t1=Tree(os.path.join(true, tree))
+        # --------------------------------
+        tree=tree.split('.')[0]+'.pf.nwk'
+        # --------------------------------
         t2=Tree(os.path.join(predicted, tree))
-        RFs.append(t1.compare(t2,unrooted=True)['norm_rf'])
+        # RFs.append(t1.compare(t2,unrooted=True)['norm_rf'])
+        rf_value = t1.compare(t2, unrooted=True)['norm_rf']
+        RFs.append(float(rf_value))
     print(f'Mean normalized Robinson-Foulds distance between true and predicted trees: {np.mean(RFs):.3f}')
 
 

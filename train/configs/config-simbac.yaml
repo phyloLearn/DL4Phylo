@@ -1,0 +1,62 @@
+entity: optimus-bits
+project: dl4phylo
+name: 5k-20-simbac-700000-0.001-0.001/bayes/2
+
+
+method: bayes
+
+
+metric:
+    name: validation/epoch-mae
+    goal: minimize
+
+
+parameters:
+
+    seed:
+        value: 42
+
+    dataset:
+        value: typing_data/5k-20-simbac-700000-0.001-0.001
+    epochs:
+        value: 185
+    batch_size:
+        values: [4, 8, 16]
+    train_fraction:
+        value: 0.9
+    
+    optimizer:
+        values: [Adam, AdamW, SGD]
+    learning_rate:
+        distribution: uniform
+        min: 0.000001
+        max: 0.1
+    
+    criterion:
+        values: [L1, L2]
+    
+    n_blocks:
+        values: [6, 8, 10]
+    n_heads:
+        values: [4, 8, 16]
+    h_dim:
+        values: [32, 64, 128]
+    dropout:
+        values: [0.0, 0.2, 0.5]
+    
+    checkpoint:
+        value: null
+    
+    amp:
+        value: True
+    clip_gradients:
+        value: True
+    early_stopping:
+        value: False
+    stopping_steps:
+        value: null
+    
+    train_batch_logs_per_epoch:
+        value: 0.01
+    validation_batch_logs_per_epoch:
+        value: 0.02
