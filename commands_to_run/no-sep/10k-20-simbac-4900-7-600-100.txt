@@ -1,0 +1,11 @@
+# GENERATE DATASET WITH simbac
+python .\ml4phylo\scripts\simulate_dataset_SimBac.py -to .\testdata\training\simbac\trees -ao .\testdata\training\simbac\alignments -s ".\simulators\simbac.exe" --nleaves 20 --ntrees 10000 --seq_len 4900
+
+# CUT ALIGNMENTS INTO BLOCKS
+python .\ml4phylo\scripts\alignments_intervals.py --input .\testdata\training\simbac\alignments\10000-20-simbac-4900-0.001-0.001 --output .\testdata\training\simbac\alignments_blocks --blocks 7 --block_size 600 --interval 100
+
+# MAKE TENSORS WITH SEQUENCES
+python .\ml4phylo\scripts\make_tensors.py --treedir .\testdata\training\simbac\trees\10000-20-simbac-4900-0.001-0.001 --datadir .\testdata\training\simbac\alignments_blocks\10000-20-simbac-4900-0.001-0.001-7-600-100 --output .\testdata\training\simbac\tensors\sequences --data_type NUCLEOTIDES_BLOCKS --block_size 600
+
+# TRAIN MODEL
+python .\ml4phylo\scripts\train_wandb.py -i .\testdata\training\simbac\tensors -o .\testdata\training\simbac\models\sequences -c .\train_config\config-10k-20-simbac-4900-7-600-100.yaml 1

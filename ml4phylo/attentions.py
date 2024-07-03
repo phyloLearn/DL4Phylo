@@ -1,5 +1,5 @@
 """The attentions module contains classes for the MultiHeadAttention modules 
-in the Phyloformer network
+in the ML4Phylo network
 """
 
 import torch.nn as nn

@@ -4,12 +4,29 @@ from typing import Dict, List, Tuple, Optional
 import numpy as np
 import skbio
 import torch
+from enum import Enum
 from ete3 import Tree
 from Bio import SeqIO
 from torch.utils.data import Dataset
 
-NUCLEOTIDES = np.array(list("ATGC")) # used for our alignment example
-AMINO_ACIDS = np.array(list("ARNDCQEGHILKMFPSTWYVX-"))
+from utils import println
+
+# Define the alphabet for nucleotides and amino acids
+NUCLEOTIDES_LIST = np.array(list("ATGC-")) # used for our alignment example
+AMINO_ACIDS_LIST = np.array(list("ARNDCQEGHILKMFPSTWYVX-"))
+TYPING_ENCODING_SIZE = 32
+
+# Enum class to define the data type
+class DataType(Enum):
+    NUCLEOTIDES = 1,
+    NUCLEOTIDES_BLOCKS = 2,
+    AMINO_ACIDS = 3,
+    AMINO_ACIDS_BLOCKS = 4,
+    TYPING = 5
+
+    @classmethod
+    def toList(self):
+        return [type.name for type in DataType]
 
 class TensorDataset(Dataset):
     """A Dataset class to train ML4Phylo networks"""
@@ -49,41 +66,48 @@ class TensorDataset(Dataset):
         return pair["X"], pair["y"]
 
 
-def load_alignment(path: str, isNucleotides: bool = False) -> Tuple[torch.Tensor, List[str]]:
+def load_data(path: str, data_type = DataType.AMINO_ACIDS, block_size = None) -> Tuple[torch.Tensor, List[str]]:
     """Loads an alignment into a tensor digestible by the Ml4Phylo network
 
     Parameters
     ----------
     path : str
         Path to a fasta file containing the alignment
+    
+    data_type: DataType
+        Type of the data to be encoded
 
     Returns
     -------
     Tuple[torch.Tensor, List[str]]
         a tuple containing:
-         - a tensor representing the alignment (shape 22 * seq_len * n_seq)
+         - a tensor representing the alignment (shape encoding_size * data_len * n_data)
          - a list of ids of the sequences in the alignment
-
     """
-    # check if the sequences use the aminoacids alphabet or the nucleotides
-    alphabet_size = len(NUCLEOTIDES) if isNucleotides else len(AMINO_ACIDS)
+    # Check the size of the encoding for the corresponding data type
     tensor_list = []
-    parsed = _parse_alignment(path)
+    parsed = _parse_typing(path) if data_type == DataType.TYPING else _parse_alignment(path)
 
-    # Iterate over all the sequences present in the dictionary
+    # Iterate over all the data present in the dictionary
     for sequence in parsed.values():
         """
-            Encodes every sequence obtaining a matrix with 2 dimensions (sequence_length, alphabet_size)
+            Encodes every sequence obtaining a matrix with 2 dimensions (data_length, encoding_size)
             This matrix stores binary values that represent for each char of the sequence its corresponding
-            amino acid or nucleotide.
+            amino acid or nucleotide and for the typing data the binary encoding of the genome identifier.
         """
-        one_hot = _sequence_to_one_hot(sequence, isNucleotides)
+        encoded_sequence = None
+        if data_type == DataType.TYPING:
+            encoded_sequence = _binary_encoding(sequence)
+        elif data_type == DataType.NUCLEOTIDES or data_type == DataType.AMINO_ACIDS:
+            encoded_sequence = _sequence_to_one_hot(sequence, data_type)
+        else:
+            encoded_sequence = _sequence_to_one_hot_blocks(sequence, block_size, data_type)
 
-        # Creates a tensor from the encoded sequence inverting his dimension to (alphabet_size, sequence_length)
-        tensor = torch.from_numpy(one_hot).t()
-
+        # Creates a tensor from the encoded sequence inverting his dimension to (encoding_size, data_length)
+        tensor = torch.from_numpy(encoded_sequence).t()
+        
         # Reshapes the tensor to a 3-dimensional one
-        reshaped_tensor = tensor.view(alphabet_size, 1, -1)
+        reshaped_tensor = tensor.view(tensor.shape[0], 1, -1)
 
         tensor_list.append(                                              
             reshaped_tensor
@@ -91,15 +115,15 @@ def load_alignment(path: str, isNucleotides: bool = False) -> Tuple[torch.Tensor
 
     """
         Concats all the tensors present in the list.
-        As tensors are made up of 3 dimensions (alphabet_size, 1, seq_length), it presents (alphabet_size) matrixes.
-        After the concatenation the obtained tensor has matrixes with dimension (n_seqs, seq_length), leading to
-        a tensor of dimensions (alphabet_size, n_seqs, seq_length).
+        As tensors are made up of 3 dimensions (encoding_size, 1, data_length), it presents (encoding_size) matrixes.
+        After the concatenation the obtained tensor has matrixes with dimension (n_data, data_length), leading to
+        a tensor of dimensions (encoding_size, n_data, data_length).
     """
     concated_tensors = torch.cat(tensor_list, dim=1)
 
     """
         Finally, the transpose of the last two dimensions is performed,
-        resulting in a tensor of dimensions (alphabet_size, seq_length, n_seqs).
+        resulting in a tensor of dimensions (encoding_size, data_length, n_data).
     """
     final_tensor = concated_tensors.transpose(-1, -2)
 
@@ -122,7 +146,7 @@ def _parse_alignment(path: str) -> Dict[str, str]:
     return {record.id: str(record.seq) for record in SeqIO.parse(path, format="fasta")}
 
 
-def _sequence_to_one_hot(seq: str, isNucleotides: bool) -> np.ndarray:
+def _sequence_to_one_hot(seq: str, data_type: DataType) -> np.ndarray:
     """Encode a sequence with one-hot encoding
 
     Parameters
@@ -133,10 +157,78 @@ def _sequence_to_one_hot(seq: str, isNucleotides: bool) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        Encoded sequence (shape 22 * seq_len)
+        Encoded sequence (shape encoding_size * data_len)
     """
-    alphabet = NUCLEOTIDES if isNucleotides else AMINO_ACIDS
+    alphabet = NUCLEOTIDES_LIST if data_type == DataType.NUCLEOTIDES or data_type == DataType.NUCLEOTIDES_BLOCKS else AMINO_ACIDS_LIST
     return np.array([(alphabet == char).astype(int) for char in seq])
+
+def _sequence_to_one_hot_blocks(seq: str, block_size: int, data_type: DataType) -> np.ndarray:
+    """Encode a sequence with one-hot encoding
+
+    Parameters
+    ----------
+    seq : str
+        Sequence to encode
+
+    Returns
+    -------
+    np.ndarray
+        Encoded sequence (shape encoding_size * data_len)
+    """
+    encoded_sequence = _sequence_to_one_hot(seq, data_type).tolist()
+    encoded_sequence_for_blocks = []
+
+    for i in range(0, len(seq), block_size):
+        encoded_chars = []
+        for char in encoded_sequence[i:i + block_size]:
+            encoded_chars += char
+        encoded_sequence_for_blocks.append(encoded_chars)
+    
+    return np.array(encoded_sequence_for_blocks)
+
+def _parse_typing(path: str) -> Dict[str, list]:
+    """Parses one txt typing data file and calculates the encoding size
+
+    Parameters
+    ----------
+    path : str
+        Path to .txt typing data file
+
+    Returns
+    -------
+    Dict[str,str]
+        A dictionary with ids as keys and genome identifiers as values
+    """
+    with open(path, 'r') as f:
+        records = f.readlines()[1:]
+
+    rec_dict = {}
+
+    for rec in (record.split() for record in records):
+        int_geneId_list = [int(i) for i in rec[1:]]
+                
+        rec_dict[rec[0]] = int_geneId_list
+                    
+    return rec_dict
+
+
+def _binary_encoding(seq: list) -> np.ndarray:
+    """Encode a sequence with binary encoding
+
+    Parameters
+    ----------
+    seq : str
+        Sequence to encode
+        
+    encoding_size : int
+        Encoded value size
+
+    Returns
+    -------
+    np.ndarray
+        Encoded sequence (shape encoding_size * data_len)
+    """
+    return np.array([list('{0:0{1}b}'.format(n, TYPING_ENCODING_SIZE)) for n in seq]).astype(int)
 
 
 def load_tree(path: str) -> Tuple[torch.Tensor, List[Tuple[str, str]]]:

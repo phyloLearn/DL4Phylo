@@ -1,0 +1,1 @@
+Store any .txt files of typing data here!

@@ -4,21 +4,26 @@ import os
 import torch
 from tqdm import tqdm
 
-from data import load_alignment, load_tree
+from data import load_tree, load_data, DataType
 
-def make_tensors(tree_dir: str, aln_dir: str, out_dir: str, isNucleotides: bool):
+def make_tensors(tree_dir: str, data_dir: str, out_dir: str, data_type: DataType, block_size: int):
+    tensors_dir = os.path.join(out_dir, data_dir.split("\\")[-1])
+    if not os.path.exists(tensors_dir):
+        os.mkdir(tensors_dir)
+
     trees = [file for file in os.listdir(tree_dir) if file.endswith(".nwk")]
     for tree_file in (pbar := tqdm(trees)):
         identifier = tree_file.rstrip(".nwk")
         pbar.set_description(f"Processing {identifier}")
         tree_tensor, _ = load_tree(os.path.join(tree_dir, tree_file))
-        aln_tensor, _ = load_alignment(os.path.join(aln_dir, f"{identifier}.fasta"), isNucleotides)
+        data_tensor, _ = load_data(os.path.join(data_dir, f"{identifier}{".txt" if data_type == DataType.TYPING else ".fasta"}"), data_type, block_size)
 
         torch.save(
-            {"X": aln_tensor, "y": tree_tensor},
-            os.path.join(out_dir, f"{identifier}.tensor_pair"),
+            {"X": data_tensor, "y": tree_tensor},
+            os.path.join(tensors_dir, f"{identifier}.tensor_pair"),
         )
 
+DATA_TYPES = DataType.toList()
 
 def main():
     parser = argparse.ArgumentParser(
@@ -32,11 +37,12 @@ def main():
         help="path to input directory containing the .nwk tree files",
     )
     parser.add_argument(
-        "-a",
-        "--alidir",
+        "-dd",
+        "--datadir",
         required=True,
         type=str,
-        help="path to input directory containing corresponding .fasta alignments",
+        help="path to input directory containing corresponding\
+            data files: [.fasta for alignments or .txt for typing data]",
     )
     parser.add_argument(
         "-o",
@@ -47,17 +53,25 @@ def main():
         help="path to output directory (default: current directory)",
     )
     parser.add_argument(
-        "-n",
-        "--nucleotides",
-        action="store_true",
-        help="boolean that indicates if it's used nucleotides instead of aminoacids",
+        "-dt",
+        "--data_type",
+        required=False,
+        default=DataType.AMINO_ACIDS.name,
+        choices=DATA_TYPES,
+        type=str,
+        help=f"type of input data. Allowed values: {DATA_TYPES}",
+    )
+    parser.add_argument(
+        "-b",
+        "--block_size",
+        required=False,
+        default=None,
+        type=int,
+        help="size of the block to encode",
     )
     args = parser.parse_args()
 
-    if not os.path.exists(args.output):
-        os.mkdir(args.output)
-
-    make_tensors(args.treedir, args.alidir, args.output, args.nucleotides)
+    make_tensors(args.treedir, args.datadir, args.output, DataType[args.data_type], args.block_size)
 
 
 if __name__ == "__main__":

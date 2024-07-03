@@ -9,7 +9,6 @@ import torch.nn as nn
 from ete3 import Tree
 from scipy.special import binom
 
-from utils import println
 from attentions import KernelAxialMultiAttention
 
 
@@ -23,8 +22,8 @@ class AttentionNet(nn.Module):
         h_dim: int = 64,
         dropout: float = 0.0,
         device: str = "cpu",
-        n_seqs: int = 20,
-        seq_len: int = 200,
+        n_data: int = 20,
+        data_len: int = 200,
         in_channels: int = 22,
         **kwargs
     ):
@@ -42,9 +41,9 @@ class AttentionNet(nn.Module):
             Droupout rate, by default 0.0
         device : str, optional
             Device for model ("cuda" or "cpu"), by default "cpu"
-        n_seqs : int, optional
+        n_data : int, optional
             Number of sequences in input alignments, by default 20
-        seq_len : int, optional
+        data_len : int, optional
             Length of sequences in input alignment, by default 200
         n_channels : int, optional
             Number of channels in input tensor, depending on input type [nucleotides: 4, aminoacids: 22, typing data: 32]
@@ -76,7 +75,7 @@ class AttentionNet(nn.Module):
         self.device = device
         self.in_channels = in_channels
 
-        self._init_seq2pair(n_seqs, seq_len)
+        self._init_seq2pair(n_data, data_len)
 
         # Initialize Module lists
         self.rowAttentions = nn.ModuleList()
@@ -105,10 +104,10 @@ class AttentionNet(nn.Module):
 
         for i in range(self.n_blocks):
             self.rowAttentions.append(
-                KernelAxialMultiAttention(h_dim, n_heads, n=seq_len).to(device)
+                KernelAxialMultiAttention(h_dim, n_heads, n=data_len).to(device)
             )
             self.columnAttentions.append(
-                KernelAxialMultiAttention(h_dim, n_heads, n=int(binom(n_seqs, 2))).to(device)
+                KernelAxialMultiAttention(h_dim, n_heads, n=int(binom(n_data, 2))).to(device)
             )
             self.layernorms.append(nn.LayerNorm(h_dim).to(device))
             self.fNNs.append(
@@ -141,7 +140,7 @@ class AttentionNet(nn.Module):
         Parameters
         ----------
         x : torch.Tensor
-            Input tensor (shape 1\*22\*n_seqs\*seq_len)
+            Input tensor (shape 1\*encoding_size\*n_data\*data_len)
 
         Returns
         -------
@@ -156,9 +155,9 @@ class AttentionNet(nn.Module):
             If the tensors aren't the right shape
         """
         # Check if the input tensor has the right shape
-        if x.shape[1:] != (self.in_channels, self.seq_len, self.n_seqs):
+        if x.shape[1:] != (self.in_channels, self.data_len, self.n_data):
             raise ValueError(
-                f"Input tensor shape is: {x.shape[1:]}; but ({self.in_channels}, {self.seq_len}, {self.n_seqs}) was expected."
+                f"Input tensor shape is: {x.shape[1:]}; but ({self.in_channels}, {self.data_len}, {self.n_data}) was expected."
             )
 
         # 2D convolution that gives us the features in the third dimension
@@ -168,7 +167,7 @@ class AttentionNet(nn.Module):
         # Pair representation
         out = torch.matmul(self.seq2pair, out.transpose(-1, -2)) # [4, 64, 190, 200]
 
-        # From here on the tensor has shape = (batch_size,features,nb_pairs,seq_len), all
+        # From here on the tensor has shape = (batch_size,features,nb_pairs,data_len), all
         # the transpose/permute allow to apply layernorm and attention over the desired
         # dimensions and are then followed by the inverse transposition/permutation
         # of dimensions
@@ -209,7 +208,7 @@ class AttentionNet(nn.Module):
             if i != self.n_blocks - 1:
                 out = self.layernorms[i](out.transpose(-1, -3)).transpose(-1, -3)  # layernorm
 
-        # shape = (batch_size, 1, nb_pairs, seq_len) --> [4, 1, 190, 200]
+        # shape = (batch_size, 1, nb_pairs, data_len) --> [4, 1, 190, 200]
         out = self.pwFNN(out)
 
         # Averaging over positions and removing the extra dimensions
@@ -218,17 +217,17 @@ class AttentionNet(nn.Module):
 
         return out
 
-    def _init_seq2pair(self, n_seqs: int, seq_len: int):
+    def _init_seq2pair(self, n_data: int, data_len: int):
         """Initialize Seq2Pair matrix"""
 
-        self.n_seqs = n_seqs
-        self.seq_len = seq_len
+        self.n_data = n_data
+        self.data_len = data_len
 
         # Calculate all possible combinations of 2 sequences
-        self.n_pairs = int(binom(n_seqs, 2))
+        self.n_pairs = int(binom(n_data, 2))
 
-        # Create a tensor with zeros of dimensions (n_pairs, n_seqs)
-        seq2pair = torch.zeros(self.n_pairs, self.n_seqs)
+        # Create a tensor with zeros of dimensions (n_pairs, n_data)
+        seq2pair = torch.zeros(self.n_pairs, self.n_data)
 
         """
             Iterates over the created tensor and places the value 1
@@ -244,8 +243,8 @@ class AttentionNet(nn.Module):
                     [0, 1, 1]
         """
         k = 0
-        for i in range(self.n_seqs):
-            for j in range(i + 1, self.n_seqs):
+        for i in range(self.n_data):
+            for j in range(i + 1, self.n_data):
                 seq2pair[k, i] = 1
                 seq2pair[k, j] = 1
                 k = k + 1
@@ -265,8 +264,8 @@ class AttentionNet(nn.Module):
             "n_heads": self.n_heads,
             "h_dim": self.h_dim,
             "dropout": self.dropout,
-            "seq_len": self.seq_len,
-            "n_seqs": self.n_seqs,
+            "data_len": self.data_len,
+            "n_data": self.n_data,
             "in_channels": self.in_channels,
         }
 
@@ -294,14 +293,14 @@ class AttentionNet(nn.Module):
         Parameters
         ----------
         X : torch.Tensor
-            Input alignment, embedded as a tensor (shape 22\*n_seq\*seq_len)
+            Input alignment, embedded as a tensor (shape encoding_size\*n_seq\*data_len)
         ids : list[str], optional
             Identifiers of the sequences in the input tensor, by default None
 
         Returns
         -------
         skbio.DistanceMatrix
-            Phylolgenetic distance matrix inferred by Phyloformer
+            Phylolgenetic distance matrix inferred by ML4Phylo
 
         Raises
         ------
@@ -309,12 +308,12 @@ class AttentionNet(nn.Module):
             If the tensors aren't the right shape
         """
                 # Check if the input tensor has the right shape
-        if X.shape != (self.in_channels, self.seq_len, self.n_seqs):
+        if X.shape != (self.in_channels, self.data_len, self.n_data):
             raise ValueError(
-                f"Input tensor shape is: {X.shape}; but ({self.in_channels}, {self.seq_len}, {self.n_seqs}) was expected."
+                f"Input tensor shape is: {X.shape}; but ({self.in_channels}, {self.data_len}, {self.n_data}) was expected."
             )
 
-        # reshape from [22, n_seq, seq_len] to [1, 22, n_seq, seq_len]
+        # reshape from [22, n_seq, data_len] to [1, 22, n_seq, data_len]
         tensor = X[None, :, :]
         tensor = tensor.to(self.device)
 
@@ -326,8 +325,8 @@ class AttentionNet(nn.Module):
         # Build distance matrix
         nn_dist = {}
         cursor = 0
-        for i in range(self.n_seqs):
-            for j in range(self.n_seqs):
+        for i in range(self.n_data):
+            for j in range(self.n_data):
                 if i == j:
                     nn_dist[(i, j)] = 0
                 if i < j:
@@ -337,7 +336,7 @@ class AttentionNet(nn.Module):
                     cursor += 1
 
         return skbio.DistanceMatrix(
-            [[nn_dist[(i, j)] for j in range(self.n_seqs)] for i in range(self.n_seqs)],
+            [[nn_dist[(i, j)] for j in range(self.n_data)] for i in range(self.n_data)],
             ids=ids,
         )
 
@@ -352,7 +351,7 @@ class AttentionNet(nn.Module):
         Parameters
         ----------
         X : torch.Tensor
-            Input alignment, embedded as a tensor (shape 22\*n_seq\*seq_len)
+            Input alignment, embedded as a tensor (shape encoding_size\*n_seq\*data_len)
         ids : list[str], optional
             Identifiers of the sequences in the input tensor, by default None
         dm : skbio.DistanceMatrix, optional
@@ -363,7 +362,7 @@ class AttentionNet(nn.Module):
         -------
         Tree
             Phylogenetic tree computed with neighbour joining from the distance matrix
-            inferred by Phyloformer
+            inferred by ML4Phylo
 
         Raises
         ------
@@ -371,9 +370,9 @@ class AttentionNet(nn.Module):
             If the tensors aren't the right shape
         """
         # Check if the input tensor has the right shape
-        if X.shape != (self.in_channels, self.seq_len, self.n_seqs):
+        if X.shape != (self.in_channels, self.data_len, self.n_data):
             raise ValueError(
-                f"Input tensor shape is: {X.shape}; but ({self.in_channels}, {self.seq_len}, {self.n_seqs}) was expected."
+                f"Input tensor shape is: {X.shape}; but ({self.in_channels}, {self.data_len}, {self.n_data}) was expected."
             )
 
         ml4phylo_dm = dm if dm is not None else self.infer_dm(X, ids)
@@ -382,7 +381,7 @@ class AttentionNet(nn.Module):
         return Tree(nn_newick_str)
 
 def _init_model(model: AttentionNet, state_dict: dict, single_gpu: bool):
-    """Loads  a state_dict into a ML4Phylo model
+    """Loads a state_dict into a ML4Phylo model
 
     Parameters
     ----------

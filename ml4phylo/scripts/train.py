@@ -10,7 +10,7 @@ from typing import Optional
 import torch
 from torch.utils.data import DataLoader
 
-from data import TensorDataset
+from data import TensorDataset, DataType
 from model import AttentionNet
 from training import init_training, load_checkpoint, training_loop
 
@@ -45,6 +45,7 @@ def init_loggers(log_option: Optional[str], identifier: str, logfile: str):
 
     return writer, log_file
 
+DATA_TYPES = DataType.toList()
 
 def main():
     parser = argparse.ArgumentParser(description="Train a ML4Phylo model")
@@ -75,35 +76,10 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        required=False,
-        default=".",
+        required=True,
         type=str,
         help="/path/ to output directory where the model parameters\
-        and the metrics will be saved (default: current directory)",
-    )
-    parser.add_argument(
-        "-it",
-        "--input_type",
-        required=False,
-        default="aminoacids",
-        type=str,
-        help="Type of input data. Possible values: [nucleotides, aminoacids, typing]",
-    )
-    parser.add_argument(
-        "-ns",
-        "--n_seqs",
-        required=False,
-        default=20,
-        type=int,
-        help="Number of sequences in input alignments.",
-    )
-    parser.add_argument(
-        "-sl",
-        "--seq_len",
-        required=False,
-        default=200,
-        type=int,
-        help="Length of sequences in input alignments.",
+        and the metrics will be saved",
     )
     parser.add_argument(
         "-l",
@@ -166,27 +142,6 @@ def main():
 
     tb_writer, log_file = init_loggers(args.log, identifier, args.logfile)
 
-    print("Loading model, scheduler and optimizer.")
-    if args.load is not None:
-        print(f"Loading from checkpoint: {args.load}")
-        model, optimizer, scheduler, criterion, _ = load_checkpoint(
-            args.load, device=device
-        )
-    else:
-        types = {
-            "nucleotides": 4,
-            "aminoacids": 22,
-            "typing": 32
-        }
-
-        if args.input_type not in types:
-            raise ValueError("You must specify one of the following input types: [nucleotides, aminoacids, typing]")
-        
-        model = AttentionNet(in_channels=types[args.input_type], n_seqs=args.n_seqs, seq_len=args.seq_len, **config)
-
-        model.to(device)
-        optimizer, scheduler, criterion = init_training(model, **config)
-
     print("Loading training and validation data.")
     if args.validation is not None:
         train_data = DataLoader(
@@ -218,8 +173,23 @@ def main():
     print(f"Model will train on {train_len} training and {val_len} validation tensors.")
     print()
 
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
+    print("Loading model, scheduler and optimizer.")
+    if args.load is not None:
+        print(f"Loading from checkpoint: {args.load}")
+        model, optimizer, scheduler, criterion, _ = load_checkpoint(
+            args.load, device=device
+        )
+    else:
+        in_channels, data_len, n_data = train_data.dataset[0][0].shape
+        
+        model = AttentionNet(in_channels=in_channels, n_data=n_data, data_len=data_len, **config)
+
+        model.to(device)
+        optimizer, scheduler, criterion = init_training(model, **config)
+
+    model_dir = os.path.join(args.output, (args.input).split("\\")[-1])
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
 
     best_model, epoch = training_loop(
         model,
@@ -233,12 +203,12 @@ def main():
         log_file=log_file,
         writer=tb_writer,
         device=device,
-        checkpoint_path=os.path.join(args.output, f"{identifier}.checkpoint.pt"),
-        best_path=os.path.join(args.output, f"{identifier}.best_checkpoint.pt"),
+        checkpoint_path=os.path.join(model_dir, f"{identifier}.checkpoint.pt"),
+        best_path=os.path.join(model_dir, f"{identifier}.best_checkpoint.pt"),
     )
 
     print(f"\nBest model gotten after {epoch} epochs!")
-    best_model.save(os.path.join(args.output, f"{identifier}.best_model.pt"))
+    best_model.save(os.path.join(model_dir, f"{identifier}.best_model.pt"))
 
     # Cleanup
     if tb_writer is not None:

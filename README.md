@@ -12,8 +12,12 @@ The dependencies to be installed are as follows:
 - ete3 
 - biopython 
 - dendropy 
-- scikit-bio 
+- scikit-bio
+- scikit-learn
 - tqdm
+
+For training the neural model it is also required:
+- wandb - for loggin
 
 To install any of these packages you only need to run the command:
 
@@ -41,33 +45,50 @@ https://github.com/rambaut/Seq-Gen/releases/tag/1.3.4
 
 The Seq-Gen executable for Windows is already available in the repository. If a Linux executable is needed, a new one should be compiled for Linux.
 
+# SimBac (Random dataset generator)
+To install SimBac: https://github.com/tbrown91/SimBac
+
+The SimBac executable for Windows is already available in the repository.
+If a Linux executable is needed, a new one should be compiled for Linux.
+
+**Attention:** SimBac uses GNU Scientific Library (GLS), meaning this library must be  installed if you need too compile a new Simbac executable. While easily set-up in Linux, in Windows it can be harder if you choose not to go with the existent Cygwin add-on, so we recommend using MSYS2 with mingw64 and installing the following package: https://packages.msys2.org/package/mingw-w64-x86_64-gsl?repo=mingw64; avoiding the need of compiling the library yourself.
+
 # Instructions to train the neural model 
-After having the dependencies and Seq-Gen ready, you can run the ML4Phylo scripts:
+After having the dependencies ready, you can run the ML4Phylo scripts:
 
 In config.json file, you should checked first what device you're planning on using: "cpu" or "cuda". (default is "cuda")
 You should open the command line through the console.bat present in the repo to set the necessary environment variable.
 
-## Simulate the trees
-```txt
-simulate_trees
-    --nleaves <number of leaves in each tree> (default 20)
-    --ntrees <number of trees> (default 20)
-    --topology <tree topology> (default uniform)
-    --output <output directory>
-    --branchlength <branch lenght distribution> (default uniform)
-```
-Example: python .\ml4phylo\scripts\simulate_trees.py ....args......
+## Simulate the dataset for train
 
-## Simulate the alignments (sequences)
+### Seq-Gen
 ```txt
-simulate_alignments
-    --input <input directory with the .nwk tree files>
-    --output <output directory>
-    --length <length of the simulated sequences> (default 200)
-    --seqgen <path to Seq-Gen executable>
-    --model <model of evolution> (default PAM)
+simulate_dataset_SeqGen
+    --tree_output <path to the output directory were the .nwk tree files will be saved>
+    --ali_output <path to the output directory were the .fasta alignment files will be saved>
+    --ntrees <number of trees> (default 20)
+    --nleaves <number of leaves> (default 20)
+    --topology <tree topology> (default uniform)
+    --branchlength <branch length distribution> (default uniform)
+    --seqgen <path to the seq-gen executable>
+    --seq_len <length of the sequences in the alignments>
+    --model <seq-gen model of evolution> (default PAM)
 ```
-Example: python .\ml4phylo\scripts\simulate_alignments.py ....args......
+Example: python .\ml4phylo\scripts\simulate_dataset_SeqGen.py ....args......
+
+### SimBac
+```txt
+simulate_dataset_SimBac
+    --tree_output <path to the output directory were the .nwk tree files will be saved>
+    --ali_output <path to the output directory were the .fasta alignments files will be saved>
+    --simbac <path to the seq-gen executable>
+    --ntrees <number of trees> (default 20)
+    -nleaves <number of leaves> (default 20)
+    --seq_len <length of the sequences in the alignments> (default 200)
+    --rate_recombination <site-specific rate of internal recombination> (default 0.001)
+    --mutation_rate <site-specific mutation rate> (default 0.001)
+```
+Example: python .\ml4phylo\scripts\simulate_dataset_SimBac.py ....args......
 
 ## Transforming genetic sequences into typing data
 ```txt
@@ -81,25 +102,14 @@ simulate_typing_data
 Example: python .\ml4phylo\scripts\simulate_typing_data.py ....args......
 
 ## Creating tensors for the neural model training
-
-### With sequences
 ```txt
 make_tensors
     --treedir <input directory with the .nwk tree files>
-    --alidir <input directory with the corresponding .fasta alignments>
+    --datadir <input directory containing corresponding data files: [.fasta for alignments or .txt for typing data]>
     --output <output directory>
-    --nucleotides <boolean that indicates if it's used nucleotides instead of aminoacids>
+    --data_type <type of input data. Possible values: [AMINO_ACIDS, NUCLEOTIDES, TYPING]> (default: AMINO_ACIDS)
 ```
 Example: python .\ml4phylo\scripts\make_tensors.py ....args......
-
-### With typing data
-```txt
-make_tensors_typing
-    --treedir <input directory with the .nwk tree files>
-    --typingdir <input directory with the corresponding .txt typing data files>
-    --output <output directory>
-```
-Example: python .\ml4phylo\scripts\make_tensors_typing.py ....args......
 
 ## Train the neural model
 ```txt
@@ -109,49 +119,61 @@ train
                     (If left empty 10% of the training set will be used as validation data.)
     --config <configuration json file for the hyperparameters.>
     --output <output directory where the model parameters and the metrics will be saved.>
-    --input_type <type of input data. Possible values: [nucleotides, aminoacids, typing].> (default: aminoacids)
-    --n_seqs <Number of sequences in input alignments.> (default: 20)
-    --seq_len <Length of sequences in input alignments.> (default: 200)
+    --data_type <type of input data. Possible values: [AMINO_ACIDS, NUCLEOTIDES, TYPING].> (default: AMINO_ACIDS)
+    --n_data <Number of sequences in input alignments.> (default: 20)
+    --data_len <Length of sequences in the alignments or the number of genomes in typing.> (default: 200)
 ```
 Example: python .\ml4phylo\scripts\train.py ....args......
 
+```txt
+train_wandb
+    --config {<yaml sweep config filepath>, <wandb sweep author/project/id>} <number of runs>
+    --device <torch device>
+    --wandb <WandB logging mode. Choices: online, offline, disabled>
+    --input </path/ to input directory containing the
+    the tensor pairs on which the model will be trained>
+    --output </path/ to output directory where the model parameters and the metrics will be saved>
+```
+Example: python .\ml4phylo\scripts\train_wandb.py ....args......
+
+## Alignments with Intervals
+Instead of converting the sequences to typing data, it is also possible, for training purposes, to split these sequences into blocks without converting them to genome identifiers.
+```txt
+alignments_intervals
+    --input <path to input directory containing the .fasta files>
+    --output <path to output directory>
+    --blocks <number of blocks of sequences required>
+    --block_size <size of the blocks of sequences required>
+    --interval <size of the interval between blocks of sequences>
+```
+Example: python .\ml4phylo\scripts\alignments_intervals.py ....args......
+
+
 ## Prediction of pair wise distances
+Its objective is to predict the pairwise distances of the provided data, whether they are sequences or typing data.
 
 ### With sequences
 ```txt
 predict
-    --alidir <input directory containing the .fasta alignments>
+    --datadir <path to input directory containing corresponding data files: [.fasta for alignments or .txt for typing data]>
     --output <path to the output directory were the .tree tree files will be saved>
     --model <NN model state dictionary, path/to/model.pt>
+    --data_type <type of input data. Possible values: [AMINO_ACIDS, NUCLEOTIDES, TYPING].> (default: AMINO_ACIDS)
 ```
 Example: python .\ml4phylo\scripts\predict.py ....args......
 
-### With typing data
-```txt
-predict_typing
-    --typingdir <input directory containing the .txt typing data>
-    --output <path to the output directory were the .tree tree files will be saved>
-    --model <NN model state dictionary, path/to/model.pt>
-```
-Example: python .\ml4phylo\scripts\predict_typing.py ....args......
-
 ## Prediction of true trees
+It is responsible for predicting the trees whose distance matrices are obtained through Hamming Distance. 
+These will be used to compare with the trees obtained by ML4Phylo.
 
 ### With sequences
 ```txt
 predict_true_trees
-    --indir <input directory containing the .fasta alignments>
+    --indir <path to input directory containing corresponding data files: [.fasta for alignments or .txt for typing data]>
     --outdir <output directory were the .nwk tree files will be saved>
+    --data_type <type of input data. Possible values: [AMINO_ACIDS, NUCLEOTIDES, TYPING].> (default: AMINO_ACIDS)
 ```
-Example: python .\ml4phylo\scripts\predict_true_trees.pt ....args......
-
-### With typing data
-```txt
-predict_true_trees_typing
-    --indir <input directory containing the .txt typing data>
-    --outdir <output directory were the .nwk tree files will be saved>
-```
-Example: python .\ml4phylo\scripts\predict_true_trees_typing.py ....args.......
+Example: python .\ml4phylo\scripts\predict_true_trees.py ....args......
 
 ## Evaluation of the obtained phylogenetic trees
 ```txt
@@ -164,9 +186,9 @@ Example: python .\ml4phylo\scripts\evaluate.py ....args......
 # Important Note
 
 ## Training folders
-In \testdata\dataset\training there are some folders you can use to store any values gotten from any operations necessary to train the model:
+In \testdata\training there are some folders you can use to store any values gotten from any operations necessary to train the model:
 
-- \testdata\dataset\training
+- \testdata\training\ &rarr; seqgen || simbac
     - trees &rarr; Store any .nwk files of generated trees;
     - alignments &rarr; Store any .fasta files of generated sequence alignments;
     - typing_data &rarr; Store any .txt files of typing data;
@@ -177,10 +199,12 @@ In \testdata\dataset\training there are some folders you can use to store any va
         - sequences &rarr; Store any models gotten from training the model with sequences.
         - typing_data &rarr; Store any models gotten from training the model with typing data.
 
-## Prediction folders
-In \testdata\dataset\predictions there are some folders you can use to store any values gotten from any operations necessary to predict the phylogenetic trees:
+This folder structure is used for the data generated by both Seq-Gen and SimBac. The training folder is divided into two parts: one for each dataset generator.
 
-- \testdata\dataset\predictions
+## Prediction folders
+In \testdata\predictions there are some folders you can use to store any values gotten from any operations necessary to predict the phylogenetic trees:
+
+- \testdata\predictions
     - alignments &rarr; Store any .fasta files of sequence alignments;
     - typing_data &rarr; Store any .txt files of typing data;
     - trees:
@@ -192,5 +216,3 @@ In \testdata\dataset\predictions there are some folders you can use to store any
         - typing_data &rarr; Store any .nwk files of true trees from typing data;
 
 Feel free to use these existing folders, but you can always have your own!
-
-**Whatever folder you might be using to store files, they are not emptied if you try to generate new ones! Remember to empty these folders to avoid any possible problems when you want to store any new files!**

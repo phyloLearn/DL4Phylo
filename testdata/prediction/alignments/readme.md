@@ -1,0 +1,1 @@
+Store any .fasta files of sequence alignments here!

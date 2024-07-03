@@ -1,7 +1,7 @@
 from re import sub, compile
 
 """
-    Function that prints a value with the corresponding text.
+    Function that prints a value with the corresponding text for debugging.
 """
 def println(txt, param):
     print(txt + "\n", param, "\n")

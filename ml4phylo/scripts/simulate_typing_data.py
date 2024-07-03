@@ -10,11 +10,11 @@ def sequence_to_typing(seq, gene_dic, total_blocks,  block_size, interval_block_
     n_blocks = 0
     typing_seq = []
     
-    for char in range(0, len(seq), block_size + interval_block_size):
-        if char + block_size > len(seq) or n_blocks >= total_blocks:
+    for i in range(0, len(seq), block_size + interval_block_size):
+        if i + block_size > len(seq) or n_blocks >= total_blocks:
             break
         
-        current_block = seq[char:char + block_size]
+        current_block = seq[i:i + block_size]
         n_blocks += 1
         
         current_gene = "gene_" + str(n_blocks)
@@ -40,8 +40,9 @@ def fasta_to_typing(total_blocks, block_size, interval_block_size, alignment, ge
 
 
 def simulate_typing_data(in_dir, out_dir, blocks, block_size, interval_size):
-    if not os.path.exists(out_dir):
-        os.mkdir(out_dir)
+    typing_dir = os.path.join(out_dir, in_dir.split("\\")[-1] + f"-{blocks}-{block_size}-{interval_size}")
+    if not os.path.exists(typing_dir):
+        os.mkdir(typing_dir)
     
     gene_dict = {}
 
@@ -61,7 +62,7 @@ def simulate_typing_data(in_dir, out_dir, blocks, block_size, interval_size):
             output += typing_seq_string + '\n'
             ST_id += 1
 
-        with open(os.path.join(out_dir, f"{identifier}.txt"), "w") as fout:
+        with open(os.path.join(typing_dir, f"{identifier}.txt"), "w") as fout:
             fout.write(output)
         
         

@@ -1,0 +1,62 @@
+entity: gc_silva-Higher Institute of Engeneering of Lisbon
+project: ML4Phylo
+name: 5000-20-simbac-4900-0.001-0.001-7-600-100-sep
+
+
+method: bayes
+
+
+metric:
+    name: validation/epoch-mae
+    goal: minimize
+
+
+parameters:
+
+    seed:
+        value: 42
+
+    dataset:
+        value: sequences/5000-20-simbac-4900-0.001-0.001-7-600-100-sep
+    epochs:
+        value: 185
+    batch_size:
+        values: [4, 8, 16, 32]
+    train_fraction:
+        values: [0.9, 0.95]
+    
+    optimizer:
+        values: [Adam, AdamW, SGD]
+    learning_rate:
+        distribution: uniform
+        min: 0.000001
+        max: 0.001
+    
+    criterion:
+        values: [L1, L2]
+    
+    n_blocks:
+        values: [6, 7, 8, 9, 10]
+    n_heads:
+        values: [4, 8, 16]
+    h_dim:
+        values: [32, 64, 128]
+    dropout:
+        values: [0.0, 0.2, 0.5]
+    
+    checkpoint:
+        value: null
+    
+    amp:
+        value: True
+    clip_gradients:
+        value: True
+    early_stopping:
+        value: True
+    stopping_steps:
+        value: 8
+    
+    train_batch_logs_per_epoch:
+        value: 0.01
+    validation_batch_logs_per_epoch:
+        value: 0.02
