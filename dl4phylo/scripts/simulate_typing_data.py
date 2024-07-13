@@ -1,8 +1,8 @@
 import os
 import argparse
 from tqdm import tqdm
-from data import _parse_alignment
-from utils import is_fasta
+from dl4phylo.data import _parse_alignment
+from dl4phylo.utils import is_fasta
 
 def sequence_to_typing(seq, gene_dic, total_blocks,  block_size, interval_block_size):
     n_blocks = 0

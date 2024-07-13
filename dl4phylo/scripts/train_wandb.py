@@ -5,10 +5,10 @@ import functools
 import math
 import numpy as np
 import os
-from data import TensorDataset
-from metrics import MAE, MRE
-from model import AttentionNet
-from training import init_training, load_checkpoint, save_checkpoint
+from dl4phylo.data import TensorDataset
+from dl4phylo.metrics import MAE, MRE
+from dl4phylo.model import AttentionNet
+from dl4phylo.training import init_training, load_checkpoint, save_checkpoint
 import random
 import torch
 from torch.cuda.amp import GradScaler, autocast

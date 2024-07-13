@@ -14,8 +14,8 @@ from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from metrics import MAE, MRE
-from model import AttentionNet
+from dl4phylo.metrics import MAE, MRE
+from dl4phylo.model import AttentionNet
 
 Scheduler = Union[
     torch.optim.lr_scheduler._LRScheduler, torch.optim.lr_scheduler.ReduceLROnPlateau

@@ -1,8 +1,8 @@
 import os
 import argparse
 from tqdm import tqdm
-from data import _parse_alignment
-from utils import is_fasta
+from dl4phylo.data import _parse_alignment
+from dl4phylo.utils import is_fasta
 
 def alignment_trimmer(in_dir, out_dir, blocks, block_size, interval_size, separator):
 

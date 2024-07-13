@@ -5,10 +5,9 @@ import skbio
 import numpy as np
 from ete3 import Tree
 from tqdm import tqdm
-from data import _parse_alignment, _parse_typing
+from dl4phylo.data import _parse_alignment, _parse_typing, DataType
 from sklearn.metrics import DistanceMetric
-from data import DataType
-from utils import is_txt, is_fasta
+from dl4phylo.utils import is_txt, is_fasta
 
 def predict_true_trees(in_dir: str, out_dir: str, data_type: DataType):
     predict_dir = os.path.join(out_dir, in_dir.split("\\")[-1])

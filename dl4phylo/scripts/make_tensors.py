@@ -3,7 +3,7 @@ import os
 
 import torch
 from tqdm import tqdm
-from data import load_tree, load_data, DataType
+from dl4phylo.data import load_tree, load_data, DataType
 
 def make_tensors(tree_dir: str, data_dir: str, out_dir: str, data_type: DataType):
     tensors_dir = os.path.join(out_dir, data_dir.split("\\")[-1])
@@ -16,7 +16,8 @@ def make_tensors(tree_dir: str, data_dir: str, out_dir: str, data_type: DataType
         identifier = tree_file.rstrip(".nwk")
         pbar.set_description(f"Processing {identifier}")
         tree_tensor, _ = load_tree(os.path.join(tree_dir, tree_file))
-        data_tensor, _ = load_data(os.path.join(data_dir, f"{identifier}{".txt" if data_type == DataType.TYPING else ".fasta"}"), data_type)
+        file_extension = ".txt" if data_type == DataType.TYPING else ".fasta"
+        data_tensor, _ = load_data(os.path.join(data_dir, f"{identifier}{file_extension}"), data_type)
 
         torch.save(
             {"X": data_tensor, "y": tree_tensor},

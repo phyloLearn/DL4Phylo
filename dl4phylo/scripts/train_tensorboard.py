@@ -10,9 +10,9 @@ from typing import Optional
 import torch
 from torch.utils.data import DataLoader
 
-from data import TensorDataset, DataType
-from model import AttentionNet
-from training import init_training, load_checkpoint, training_loop
+from dl4phylo.data import TensorDataset, DataType
+from dl4phylo.model import AttentionNet
+from dl4phylo.training import init_training, load_checkpoint, training_loop
 
 TITLE = """
 ______ _       ___ ______ _           _       

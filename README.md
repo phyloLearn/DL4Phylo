@@ -1,11 +1,13 @@
 <img src="./resources/DL4Phylo_logo.png" alt="DL4Phylo" width="500"/>
 
+<!-- ![](https://raw.githubusercontent.com/phyloLearn/ML4phylo/main/resources/DL4Phylo_logo.png) -->
+
 # DL4Phylo: Deep Learning techniques applied to Phylogenetic Analysis
 
 ## Authors
-- GonÃ§alo Silva
-- Miguel Monteiro
-- CÃ¡tia Vaz (Supervisor)
+- Gonçalo Silva
+- Miguel Raposo
+- Cátia Vaz (Supervisor)
 
 ## Main Objective
 There are numerous databases with Typing Data and various approaches for performing the phylogenetic inference of this kind of data instead of DNA sequences. Therefore, it would be ideal to have a tool that supports this type of data. With this problem in mind, we propose DL4Phylo.
@@ -35,7 +37,7 @@ Then if you wish to delete the created environment:
 conda remove -n dl4phylo --all
 ```
 
-Ok, all set! YouÂ´re ready to begin using **DL4Phylo**!
+Ok, all set! You're ready to begin using **DL4Phylo**!
 
 # Tool dependencies
 
@@ -112,13 +114,26 @@ simulate_typing_data
     --interval <size of the interval between blocks>
 ```
 
+## Trimming alignments
+Instead of converting the sequences to typing data, it is also possible, to split these sequences into blocks without converting them to genome identifiers.
+
+```
+alignment_trimmer
+    --input <path to input directory containing the .fasta files>
+    --output <path to output directory>
+    --blocks <number of blocks of sequences required>
+    --block_size <size of the blocks of sequences required>
+    --interval <size of the interval between blocks of sequences>
+    --separator <boolean to identify if it is necessary to separate the blocks with '-'>
+```
+
 ## Creating tensors for the neural model training
 ```
 make_tensors
     --treedir <input directory with the .nwk tree files>
     --datadir <input directory containing corresponding data files: [.fasta for alignments or .txt for typing data]>
     --output <output directory>
-    --data_type <type of input data. Possible values: [AMINO_ACIDS, NUCLEOTIDES, TYPING]> (default: AMINO_ACIDS)
+    --data_type <type of input data. Possible values: [AMINO_ACIDS, AMINO_ACIDS_BLOCKS, NUCLEOTIDES, NUCLEOTIDES_BLOCKS, TYPING]> (default: AMINO_ACIDS)
 ```
 
 ## Train the neural model
@@ -145,19 +160,6 @@ train_wandb
     --output </path/ to output directory where the model parameters and the metrics will be saved>
 ```
 
-## Trimming alignments
-Instead of converting the sequences to typing data, it is also possible, to split these sequences into blocks without converting them to genome identifiers.
-
-```
-alignment_trimmer
-    --input <path to input directory containing the .fasta files>
-    --output <path to output directory>
-    --blocks <number of blocks of sequences required>
-    --block_size <size of the blocks of sequences required>
-    --interval <size of the interval between blocks of sequences>
-    --separator <boolean to identify if it is necessary to separate the blocks with '-'>
-```
-
 To understand better the two ways **alignment_trimmer** can be used, mainly due to the presence of the **separator** option, we recommend reading the chapter **DL4Phylo vs Phyloformer** in our report.
 
 ## Predicting the pair wise distances
@@ -168,9 +170,10 @@ predict
     --datadir <path to input directory containing corresponding data files: [.fasta for alignments or .txt for typing data]>
     --output <path to the output directory were the .tree tree files will be saved>
     --model <NN model state dictionary, path/to/model.pt>
-    --data_type <type of input data. Possible values: [AMINO_ACIDS, NUCLEOTIDES, TYPING].> (default: AMINO_ACIDS)
+    --data_type <type of input data. Possible values: [AMINO_ACIDS, AMINO_ACIDS_BLOCKS, NUCLEOTIDES, NUCLEOTIDES_BLOCKS, TYPING].> (default: AMINO_ACIDS)
     
 ```
+**Attention**: If you choose to predict the pairwise distances for alignments in blocks (AMINO_ACID_BLOCKS or NUCLEOTIDE_BLOCKS), your alignments should have the same block size as the alignments used to train the model. This is a limitation of this type of data.
 
 ## Prediction of true trees
 It is responsible for predicting the trees whose distance matrices are obtained through Hamming Distance. 
@@ -180,7 +183,7 @@ These will be used to compare with the trees obtained by DL4Phylo.
 predict_true_trees
     --indir <path to input directory containing corresponding data files: [.fasta for alignments or .txt for typing data]>
     --outdir <output directory were the .nwk tree files will be saved>
-    --data_type <type of input data. Possible values: [AMINO_ACIDS, NUCLEOTIDES, TYPING].> (default: AMINO_ACIDS)
+    --data_type <type of input data. Possible values: [AMINO_ACIDS, AMINO_ACIDS_BLOCKS, NUCLEOTIDES, NUCLEOTIDES_BLOCKS, TYPING].> (default: AMINO_ACIDS)
 ```
 
 ## Evaluation of the obtained phylogenetic trees

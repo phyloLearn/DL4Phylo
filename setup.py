@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="DL4Phylo",
-    version="0.0.1",
+    version="0.0.3",
     description="Deep Learning techniques applied to Phylogenetic Analysis",
     long_description=open("./README.md").read(),
     long_description_content_type="text/markdown",
@@ -22,7 +22,10 @@ setup(
         "tqdm>=4.65.0",
         "wandb>=0.17.3",
     ],
-    python_requires=">=3.9, <3.12",
+    extras_require={
+        "dev": ["twine>=4.0.2, !=5.1.0"]
+    },
+    python_requires=">=3.9, <3.13",
     entry_points = {
         'console_scripts': [
             "train_wandb = dl4phylo.scripts.train_wandb:main",

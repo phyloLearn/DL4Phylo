@@ -9,7 +9,7 @@ import torch.nn as nn
 from ete3 import Tree
 from scipy.special import binom
 
-from attentions import KernelAxialMultiAttention
+from dl4phylo.attentions import KernelAxialMultiAttention
 
 
 class AttentionNet(nn.Module):

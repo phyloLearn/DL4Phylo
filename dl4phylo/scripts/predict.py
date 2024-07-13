@@ -3,9 +3,9 @@ import os
 
 import torch
 from tqdm import tqdm
-from data import load_data, write_dm, DataType
-from model import AttentionNet, load_model
-from utils import is_fasta, is_txt
+from dl4phylo.data import load_data, write_dm, DataType
+from dl4phylo.model import AttentionNet, load_model
+from dl4phylo.utils import is_fasta, is_txt
 
 def make_predictions(model: AttentionNet, aln_dir: str, out_dir: str, save_dm: bool, data_type: DataType):
     predict_dir = os.path.join(out_dir, aln_dir.split("\\")[-1])
