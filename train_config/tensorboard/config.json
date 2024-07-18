@@ -10,5 +10,5 @@
   "h_dim": 64,
   "dropout": 0.0,
   "amp": "true",
-  "device": "cuda"
+  "device": "cpu"
 }
